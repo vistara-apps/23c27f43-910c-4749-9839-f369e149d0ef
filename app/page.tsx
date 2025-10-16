@@ -6,14 +6,23 @@ import { TipButton } from '@/components/TipButton';
 import { SuccessModal } from '@/components/SuccessModal';
 import { TipHistory } from '@/components/TipHistory';
 import { TIP_AMOUNTS } from '@/lib/constants';
-import type { TipAmount, Tip, TransactionStatus } from '@/lib/types';
+import type { TipAmount, Tip } from '@/lib/types';
 import { Heart, Sparkles, TrendingUp } from 'lucide-react';
+import { useX402Payment } from '@/lib/hooks/useX402Payment';
 
 export default function HomePage() {
   const [selectedAmount, setSelectedAmount] = useState<TipAmount | null>(null);
-  const [txStatus, setTxStatus] = useState<TransactionStatus>({ status: 'idle' });
   const [showSuccess, setShowSuccess] = useState(false);
   const [recentTips, setRecentTips] = useState<Tip[]>([]);
+  
+  // Example creator address - in production, this would come from the creator's profile
+  const CREATOR_ADDRESS = process.env.NEXT_PUBLIC_CREATOR_ADDRESS || '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb';
+  const X402_API_URL = process.env.NEXT_PUBLIC_X402_API_URL;
+  
+  const { sendPayment, txStatus, resetStatus, isConnected, address } = useX402Payment({
+    recipientAddress: CREATOR_ADDRESS,
+    x402ApiUrl: X402_API_URL,
+  });
 
   // Mock data for demonstration
   useEffect(() => {
@@ -41,33 +50,44 @@ export default function HomePage() {
   }, []);
 
   const handleTip = async (amount: TipAmount) => {
-    setSelectedAmount(amount);
-    setTxStatus({ status: 'pending' });
+    if (!isConnected) {
+      alert('Please connect your wallet first');
+      return;
+    }
 
-    // Simulate transaction
-    setTimeout(() => {
-      const mockHash = '0x' + Math.random().toString(16).slice(2, 66);
-      setTxStatus({ status: 'success', hash: mockHash });
+    setSelectedAmount(amount);
+    
+    const result = await sendPayment(amount);
+    
+    if (result.success && result.transactionHash) {
       setShowSuccess(true);
       
       // Add to recent tips
       const newTip: Tip = {
         tipId: Date.now().toString(),
         creatorFid: '0x1234',
-        tipperFid: '0xuser',
+        tipperFid: address || '0xuser',
         amount,
-        transactionHash: mockHash,
+        transactionHash: result.transactionHash,
         timestamp: Date.now(),
-        isGasSponsored: true,
+        isGasSponsored: !!X402_API_URL,
       };
       setRecentTips([newTip, ...recentTips]);
-    }, 2000);
+    } else {
+      alert(`Payment failed: ${result.error || 'Unknown error'}`);
+    }
   };
 
   const handleShare = () => {
     // Implement share functionality
     console.log('Sharing receipt...');
     setShowSuccess(false);
+    resetStatus();
+  };
+
+  const handleCloseModal = () => {
+    setShowSuccess(false);
+    resetStatus();
   };
 
   return (
@@ -160,9 +180,26 @@ export default function HomePage() {
         <SuccessModal
           amount={selectedAmount}
           transactionHash={txStatus.hash}
-          onClose={() => setShowSuccess(false)}
+          onClose={handleCloseModal}
           onShare={handleShare}
         />
+      )}
+
+      {/* Error Message */}
+      {txStatus.status === 'error' && txStatus.error && (
+        <div className="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 z-50">
+          <span>❌</span>
+          <div>
+            <p className="font-semibold">Payment Failed</p>
+            <p className="text-sm">{txStatus.error}</p>
+          </div>
+          <button 
+            onClick={resetStatus}
+            className="ml-4 text-white hover:text-gray-200"
+          >
+            ✕
+          </button>
+        </div>
       )}
     </div>
   );
