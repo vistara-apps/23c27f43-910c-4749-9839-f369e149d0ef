@@ -1,0 +1,30 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "Creator Tip Jar",
+    "subtitle": "Built with Zara",
+    "description": "Creator Tip Jar is a Base Mini App built with Zara.",
+    "iconUrl": "https://0co.to/images/zara-2.png",
+    "homeUrl": "https://app-e149d0ef-273f.vercel.app",
+    "splashImageUrl": "https://app-e149d0ef-273f.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000",
+    "heroImageUrl": "https://app-e149d0ef-273f.vercel.app/image.png",
+    "tagline": "Creator Tip Jar",
+    "screenshotUrls": [
+      "https://app-e149d0ef-273f.vercel.app/screenshot.png",
+      "https://app-e149d0ef-273f.vercel.app/screenshot.png"
+    ],
+    "primaryCategory": "social",
+    "tags": [
+      "base",
+      "miniapp",
+      "onchainkit"
+    ],
+    "webhookUrl": "https://app-e149d0ef-273f.vercel.app/api/webhook"
+  }
+}
