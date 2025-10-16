@@ -1,15 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { ConnectWalletButton } from '@/components/ConnectWalletButton';
 import { TipButton } from '@/components/TipButton';
 import { SuccessModal } from '@/components/SuccessModal';
 import { TipHistory } from '@/components/TipHistory';
+import { usePayment } from '@/hooks/usePayment';
 import { TIP_AMOUNTS } from '@/lib/constants';
 import type { TipAmount, Tip, TransactionStatus } from '@/lib/types';
-import { Heart, Sparkles, TrendingUp } from 'lucide-react';
+import { Heart, Sparkles, TrendingUp, AlertCircle } from 'lucide-react';
 
 export default function HomePage() {
+  const { address, isConnected } = useAccount();
+  const { processPayment, isProcessing, error: paymentError } = usePayment();
+  
   const [selectedAmount, setSelectedAmount] = useState<TipAmount | null>(null);
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ status: 'idle' });
   const [showSuccess, setShowSuccess] = useState(false);
@@ -41,27 +46,51 @@ export default function HomePage() {
   }, []);
 
   const handleTip = async (amount: TipAmount) => {
+    if (!isConnected) {
+      setTxStatus({ status: 'error', error: 'Please connect your wallet first' });
+      return;
+    }
+
     setSelectedAmount(amount);
     setTxStatus({ status: 'pending' });
 
-    // Simulate transaction
-    setTimeout(() => {
-      const mockHash = '0x' + Math.random().toString(16).slice(2, 66);
-      setTxStatus({ status: 'success', hash: mockHash });
-      setShowSuccess(true);
-      
-      // Add to recent tips
-      const newTip: Tip = {
-        tipId: Date.now().toString(),
-        creatorFid: '0x1234',
-        tipperFid: '0xuser',
+    try {
+      // Process payment using x402 protocol
+      const result = await processPayment({
+        recipientAddress: '0x1234567890123456789012345678901234567890', // Replace with actual creator address
         amount,
-        transactionHash: mockHash,
-        timestamp: Date.now(),
-        isGasSponsored: true,
-      };
-      setRecentTips([newTip, ...recentTips]);
-    }, 2000);
+        creatorFid: '0x1234',
+        tipperFid: address,
+      });
+
+      if (result.success && result.transactionHash) {
+        setTxStatus({ status: 'success', hash: result.transactionHash });
+        setShowSuccess(true);
+        
+        // Add to recent tips
+        const newTip: Tip = {
+          tipId: Date.now().toString(),
+          creatorFid: '0x1234',
+          tipperFid: address || '0xuser',
+          amount,
+          transactionHash: result.transactionHash,
+          timestamp: Date.now(),
+          isGasSponsored: true,
+        };
+        setRecentTips([newTip, ...recentTips]);
+      } else {
+        setTxStatus({ 
+          status: 'error', 
+          error: result.error || 'Payment failed. Please try again.' 
+        });
+      }
+    } catch (error: any) {
+      console.error('Tip error:', error);
+      setTxStatus({ 
+        status: 'error', 
+        error: error.message || 'An unexpected error occurred' 
+      });
+    }
   };
 
   const handleShare = () => {
@@ -120,6 +149,13 @@ export default function HomePage() {
             <div className="mt-6 flex items-center justify-center gap-2 text-primary">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
               <span>Processing your tip...</span>
+            </div>
+          )}
+
+          {txStatus.status === 'error' && txStatus.error && (
+            <div className="mt-6 flex items-center justify-center gap-2 text-red-500 bg-red-500 bg-opacity-10 px-4 py-3 rounded-lg">
+              <AlertCircle className="w-5 h-5" />
+              <span>{txStatus.error}</span>
             </div>
           )}
         </div>
