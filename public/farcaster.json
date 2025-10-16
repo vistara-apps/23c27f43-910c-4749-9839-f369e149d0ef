@@ -1,0 +1,16 @@
+{
+  "frame": {
+    "name": "Creator Tip Jar",
+    "homeUrl": "https://creator-tip-jar.vercel.app",
+    "iconUrl": "https://creator-tip-jar.vercel.app/icon.png",
+    "version": "next",
+    "webhookUrl": "https://creator-tip-jar.vercel.app/api/webhook",
+    "splashImageUrl": "https://creator-tip-jar.vercel.app/splash.png",
+    "splashBackgroundColor": "#0A0A0A"
+  },
+  "accountAssociation": {
+    "header": "Link your Farcaster ID to Creator Tip Jar for personalized tipping experiences.",
+    "payload": "domain=creator-tip-jar.vercel.app",
+    "signature": ""
+  }
+}
