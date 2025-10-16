@@ -2,6 +2,7 @@
 
 import { CheckCircle2, ExternalLink, Share2, X } from 'lucide-react';
 import { formatUSDC } from '@/lib/utils';
+import { TransactionStatus } from './TransactionStatus';
 
 interface SuccessModalProps {
   amount: number;
@@ -34,28 +35,22 @@ export function SuccessModal({ amount, transactionHash, onClose, onShare }: Succ
           </button>
         </div>
 
-        <div className="bg-surface rounded-lg p-4 mb-6">
+        <div className="bg-surface rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-gray-400">Amount Sent</span>
             <span className="text-2xl font-bold text-success">{formatUSDC(amount)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-400">Gas Fee</span>
-            <span className="text-success font-medium">Sponsored ✨</span>
+            <span className="text-gray-400">Network</span>
+            <span className="text-primary font-medium">Base</span>
           </div>
         </div>
 
+        <div className="mb-6">
+          <TransactionStatus hash={transactionHash} />
+        </div>
+
         <div className="space-y-3">
-          <a
-            href={explorerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full btn-secondary"
-          >
-            <ExternalLink className="w-4 h-4" />
-            View on BaseScan
-          </a>
-          
           <button
             onClick={onShare}
             className="flex items-center justify-center gap-2 w-full btn-primary"
@@ -64,10 +59,6 @@ export function SuccessModal({ amount, transactionHash, onClose, onShare }: Succ
             Share Receipt
           </button>
         </div>
-
-        <p className="text-xs text-center text-gray-500 mt-4">
-          Transaction: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
-        </p>
       </div>
     </div>
   );
