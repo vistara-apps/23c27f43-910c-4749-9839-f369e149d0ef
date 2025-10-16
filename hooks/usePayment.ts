@@ -30,7 +30,7 @@ export function usePayment(): UsePaymentReturn {
             success: false,
             error: 'Wallet not connected. Please connect your wallet first.',
           };
-          setError(result.error);
+          setError(result.error ?? null);
           setLastResult(result);
           return result;
         }
@@ -40,7 +40,7 @@ export function usePayment(): UsePaymentReturn {
             success: false,
             error: 'Wallet client not available. Please try again.',
           };
-          setError(result.error);
+          setError(result.error ?? null);
           setLastResult(result);
           return result;
         }
@@ -48,7 +48,7 @@ export function usePayment(): UsePaymentReturn {
         const result = await processPayment(walletClient, config);
         
         if (!result.success) {
-          setError(result.error || 'Payment failed');
+          setError(result.error ?? 'Payment failed');
         }
         
         setLastResult(result);
@@ -58,7 +58,7 @@ export function usePayment(): UsePaymentReturn {
           success: false,
           error: err.message || 'An unexpected error occurred',
         };
-        setError(result.error);
+        setError(result.error ?? null);
         setLastResult(result);
         return result;
       } finally {

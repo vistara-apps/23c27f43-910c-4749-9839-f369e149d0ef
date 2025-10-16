@@ -129,12 +129,17 @@ export async function processPayment(
 
 /**
  * Get USDC balance for an address
+ * Note: Use PublicClient from wagmi's usePublicClient hook to call this
  */
 export async function getUSDCBalance(
-  walletClient: WalletClient,
+  publicClient: any,
   address: string
 ): Promise<bigint> {
   try {
+    if (!publicClient) {
+      return BigInt(0);
+    }
+
     const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
     
     // ERC20 balanceOf ABI
@@ -148,7 +153,7 @@ export async function getUSDCBalance(
       },
     ] as const;
 
-    const balance = await walletClient.readContract({
+    const balance = await publicClient.readContract({
       address: USDC_ADDRESS as `0x${string}`,
       abi: balanceOfABI,
       functionName: 'balanceOf',
